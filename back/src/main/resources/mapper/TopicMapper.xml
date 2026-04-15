@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.TopicMapper">
+
+    <resultMap id="TopicEntityMap" type="org.example.project.model.TopicEntity">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdByName" column="created_by_name"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="org.example.project.model.TopicEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO topic (title, description, created_by, created_at)
+        VALUES (#{title}, #{description}, #{createdBy}, #{createdAt})
+    </insert>
+
+    <select id="findById" resultMap="TopicEntityMap">
+        SELECT
+            t.id, t.title, t.description, t.created_by, t.created_at,
+            COALESCE(NULLIF(u.display_name, ''), u.username) AS created_by_name
+        FROM topic t
+                 LEFT JOIN users u ON t.created_by = u.id
+        WHERE t.id = #{id}
+    </select>
+
+    <select id="list" resultMap="TopicEntityMap">
+        SELECT
+            t.id, t.title, t.description, t.created_by, t.created_at,
+            COALESCE(NULLIF(u.display_name, ''), u.username) AS created_by_name
+        FROM topic t
+                 LEFT JOIN users u ON t.created_by = u.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (t.title LIKE CONCAT('%', #{keyword}, '%') OR t.description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY t.id DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1)
+        FROM topic
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+</mapper>
+

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.RolePermissionMapper">
+
+    <resultMap id="RolePermissionRowMap" type="org.example.project.model.RolePermissionRow">
+        <result property="role" column="role"/>
+        <result property="roleLabel" column="role_label"/>
+        <result property="permission" column="permission"/>
+    </resultMap>
+
+    <select id="findPermissionsByRole" resultType="string">
+        SELECT permission
+        FROM role_permissions
+        WHERE role = #{role}
+        ORDER BY id ASC
+    </select>
+
+    <select id="listAll" resultMap="RolePermissionRowMap">
+        SELECT r.role AS role, r.role_label AS role_label, rp.permission AS permission
+        FROM roles r
+        LEFT JOIN role_permissions rp ON r.role = rp.role
+        ORDER BY r.role ASC, rp.id ASC
+    </select>
+
+    <select id="roleExists" resultType="int">
+        SELECT CASE WHEN COUNT(1) > 0 THEN 1 ELSE 0 END
+        FROM roles
+        WHERE role = #{role}
+    </select>
+
+    <select id="findRoleLabel" resultType="string">
+        SELECT role_label
+        FROM roles
+        WHERE role = #{role}
+        LIMIT 1
+    </select>
+
+    <delete id="deleteByRole">
+        DELETE FROM role_permissions
+        WHERE role = #{role}
+    </delete>
+
+    <insert id="insertBatch">
+        INSERT INTO role_permissions (role, role_label, permission)
+        VALUES
+        <foreach collection="permissions" item="permission" separator=",">
+            (#{role}, #{roleLabel}, #{permission})
+        </foreach>
+    </insert>
+</mapper>

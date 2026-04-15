@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.PostCommentMapper">
+
+    <resultMap id="PostCommentEntityMap" type="org.example.project.model.PostCommentEntity">
+        <id property="id" column="id"/>
+        <result property="postId" column="post_id"/>
+        <result property="postTitle" column="post_title"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="author" column="author"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="org.example.project.model.PostCommentEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO post_comment (post_id, parent_id, user_id, content, created_at, updated_at)
+        VALUES (#{postId}, #{parentId}, #{userId}, #{content}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findById" resultMap="PostCommentEntityMap">
+        SELECT
+            c.id, c.post_id, c.parent_id, c.user_id, c.content, c.created_at, c.updated_at,
+            COALESCE(NULLIF(u.display_name, ''), u.username) AS author
+        FROM post_comment c
+                 LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.id = #{id}
+    </select>
+
+    <select id="listByPostId" resultMap="PostCommentEntityMap">
+        SELECT
+            c.id, c.post_id, c.parent_id, c.user_id, c.content, c.created_at, c.updated_at,
+            COALESCE(NULLIF(u.display_name, ''), u.username) AS author
+        FROM post_comment c
+                 LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.post_id = #{postId}
+        ORDER BY c.created_at ASC, c.id ASC
+    </select>
+
+    <select id="listByPostIdPaged" resultMap="PostCommentEntityMap">
+        SELECT
+            c.id, c.post_id, c.parent_id, c.user_id, c.content, c.created_at, c.updated_at,
+            COALESCE(NULLIF(u.display_name, ''), u.username) AS author
+        FROM post_comment c
+                 LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.post_id = #{postId}
+        ORDER BY c.created_at ASC, c.id ASC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="countByPostId" resultType="long">
+        SELECT COUNT(1) FROM post_comment WHERE post_id = #{postId}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(1) FROM post_comment
+    </select>
+
+    <select id="listByUserId" resultMap="PostCommentEntityMap">
+        SELECT
+            c.id, c.post_id, c.parent_id, c.user_id, c.content, c.created_at, c.updated_at,
+            p.title AS post_title,
+            COALESCE(NULLIF(u.display_name, ''), u.username) AS author
+        FROM post_comment c
+                 LEFT JOIN users u ON c.user_id = u.id
+                 LEFT JOIN posts p ON c.post_id = p.id
+        <where>
+            c.user_id = #{userId}
+            <if test="keyword != null and keyword != ''">
+                AND c.content LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+        ORDER BY c.id DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(1)
+        FROM post_comment c
+        <where>
+            c.user_id = #{userId}
+            <if test="keyword != null and keyword != ''">
+                AND c.content LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="listDistinctPostIdsByUserId" resultType="long">
+        SELECT DISTINCT post_id
+        FROM post_comment
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.UserFollowMapper">
+
+    <select id="exists" resultType="int">
+        SELECT COUNT(1)
+        FROM user_follow
+        WHERE user_id = #{userId}
+          AND target_user_id = #{targetUserId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO user_follow (user_id, target_user_id, created_at)
+        VALUES (#{userId}, #{targetUserId}, #{createdAt})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM user_follow
+        WHERE user_id = #{userId}
+          AND target_user_id = #{targetUserId}
+    </delete>
+
+    <select id="listFollowing" resultType="org.example.project.dto.FollowUserView">
+        SELECT
+            u.id AS id,
+            u.username AS username,
+            u.display_name AS displayName,
+            up.avatar AS avatar,
+            u.role AS role,
+            up.bio AS bio,
+            u.created_at AS joinedAt
+        FROM user_follow f
+                 INNER JOIN users u ON f.target_user_id = u.id
+                 LEFT JOIN user_profile up ON u.id = up.user_id
+        <where>
+            f.user_id = #{userId}
+            <if test="keyword != null and keyword != ''">
+                AND (
+                u.username LIKE CONCAT('%', #{keyword}, '%')
+                    OR u.display_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR up.bio LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY f.id DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="countFollowing" resultType="long">
+        SELECT COUNT(1)
+        FROM user_follow f
+                 INNER JOIN users u ON f.target_user_id = u.id
+                 LEFT JOIN user_profile up ON u.id = up.user_id
+        <where>
+            f.user_id = #{userId}
+            <if test="keyword != null and keyword != ''">
+                AND (
+                u.username LIKE CONCAT('%', #{keyword}, '%')
+                    OR u.display_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR up.bio LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+    </select>
+
+    <select id="countFollowerByTargetUserId" resultType="long">
+        SELECT COUNT(1)
+        FROM user_follow
+        WHERE target_user_id = #{targetUserId}
+    </select>
+
+</mapper>

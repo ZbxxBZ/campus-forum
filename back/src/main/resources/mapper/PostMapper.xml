@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.PostMapper">
+
+    <resultMap id="PostEntityMap" type="org.example.project.model.PostEntity">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="content" column="content"/>
+        <result property="format" column="format"/>
+        <result property="attachmentsJson" column="attachments_json"/>
+        <result property="tagsJson" column="tags_json"/>
+        <result property="galleryCaptionsJson" column="gallery_captions_json"/>
+        <result property="linkUrl" column="link_url"/>
+        <result property="linkTitle" column="link_title"/>
+        <result property="linkSummary" column="link_summary"/>
+        <result property="boardId" column="board_id"/>
+        <result property="boardName" column="board_name"/>
+        <result property="category" column="category"/>
+        <result property="author" column="author"/>
+        <result property="visibility" column="visibility"/>
+        <result property="status" column="status"/>
+        <result property="riskLevel" column="risk_level"/>
+        <result property="isTop" column="is_top"/>
+        <result property="isFeatured" column="is_featured"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="org.example.project.model.PostEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO posts (
+            title, summary, content, format, attachments_json, tags_json, gallery_captions_json, link_url, link_title, link_summary, board_id, board_name, category,
+            author, visibility, status, risk_level, is_top, is_featured, created_at, updated_at
+        ) VALUES (
+            #{title}, #{summary}, #{content}, #{format}, #{attachmentsJson}, #{tagsJson}, #{galleryCaptionsJson}, #{linkUrl}, #{linkTitle}, #{linkSummary}, #{boardId}, #{boardName}, #{category},
+            #{author}, #{visibility}, #{status}, #{riskLevel}, #{isTop}, #{isFeatured}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateSelective" parameterType="org.example.project.model.PostEntity">
+        UPDATE posts
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="format != null">format = #{format},</if>
+            <if test="attachmentsJson != null">attachments_json = #{attachmentsJson},</if>
+            <if test="tagsJson != null">tags_json = #{tagsJson},</if>
+            <if test="galleryCaptionsJson != null">gallery_captions_json = #{galleryCaptionsJson},</if>
+            <if test="linkUrl != null">link_url = #{linkUrl},</if>
+            <if test="linkTitle != null">link_title = #{linkTitle},</if>
+            <if test="linkSummary != null">link_summary = #{linkSummary},</if>
+            <if test="boardId != null">board_id = #{boardId},</if>
+            <if test="boardName != null">board_name = #{boardName}, category = #{boardName},</if>
+            <if test="visibility != null">visibility = #{visibility},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="riskLevel != null">risk_level = #{riskLevel},</if>
+            <if test="isTop != null">is_top = #{isTop},</if>
+            <if test="isFeatured != null">is_featured = #{isFeatured},</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="list" resultMap="PostEntityMap">
+        SELECT
+            id, title, summary, content, format, attachments_json, tags_json, gallery_captions_json, link_url, link_title, link_summary, board_id, board_name, category,
+            author, visibility, status, risk_level, is_top, is_featured, created_at, updated_at
+        FROM posts
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (title LIKE CONCAT('%', #{keyword}, '%') OR author LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="statuses != null and statuses.size() > 0">
+                AND status IN
+                <foreach collection="statuses" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="(statuses == null or statuses.size() == 0) and status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="boardId != null">
+                AND board_id = #{boardId}
+            </if>
+            <if test="format != null and format != ''">
+                AND format = #{format}
+            </if>
+            <if test="visibility != null and visibility != ''">
+                AND visibility = #{visibility}
+            </if>
+            <if test="author != null and author != ''">
+                AND author = #{author}
+            </if>
+        </where>
+        ORDER BY created_at DESC, id DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1)
+        FROM posts
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (title LIKE CONCAT('%', #{keyword}, '%') OR author LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="statuses != null and statuses.size() > 0">
+                AND status IN
+                <foreach collection="statuses" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="(statuses == null or statuses.size() == 0) and status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="boardId != null">
+                AND board_id = #{boardId}
+            </if>
+            <if test="format != null and format != ''">
+                AND format = #{format}
+            </if>
+            <if test="visibility != null and visibility != ''">
+                AND visibility = #{visibility}
+            </if>
+            <if test="author != null and author != ''">
+                AND author = #{author}
+            </if>
+        </where>
+    </select>
+
+    <select id="listPublished" resultMap="PostEntityMap">
+        SELECT
+            id, title, summary, content, format, attachments_json, tags_json, gallery_captions_json, link_url, link_title, link_summary, board_id, board_name, category,
+            author, visibility, status, risk_level, is_top, is_featured, created_at, updated_at,
+            (SELECT COUNT(1) FROM post_like pl WHERE pl.post_id = posts.id) AS like_count,
+            (SELECT COUNT(1) FROM post_favorite pf WHERE pf.post_id = posts.id) AS favorite_count,
+            (SELECT COUNT(1) FROM post_comment pc WHERE pc.post_id = posts.id) AS comment_count,
+            (
+                (SELECT COUNT(1) FROM post_like pl WHERE pl.post_id = posts.id) * 3
+                + (SELECT COUNT(1) FROM post_favorite pf WHERE pf.post_id = posts.id) * 2
+                + (SELECT COUNT(1) FROM post_comment pc WHERE pc.post_id = posts.id)
+            ) AS hot_score,
+            (CASE
+                 WHEN #{requesterUserId} IS NOT NULL AND EXISTS (
+                     SELECT 1
+                     FROM user_follow uf
+                              INNER JOIN users u ON uf.target_user_id = u.id
+                     WHERE uf.user_id = #{requesterUserId}
+                       AND u.username = posts.author
+                 ) THEN 1
+                 ELSE 0
+                END) AS follow_score,
+            <choose>
+                <when test="preferredTags != null and preferredTags.size() > 0">
+                    (
+                    <foreach collection="preferredTags" item="pTag" separator=" + ">
+                        (CASE WHEN tags_json LIKE CONCAT('%', #{pTag}, '%') THEN 1 ELSE 0 END)
+                    </foreach>
+                    )
+                </when>
+                <otherwise>0</otherwise>
+            </choose>
+            AS tag_match_score,
+            <choose>
+                <when test="keywordTerms != null and keywordTerms.size() > 0">
+                    (
+                    <foreach collection="keywordTerms" item="term" separator=" + ">
+                        (
+                        (CASE WHEN title = #{term} THEN 300 ELSE 0 END)
+                        + (CASE WHEN title LIKE CONCAT('%', #{term}, '%') THEN 120 ELSE 0 END)
+                        + (CASE WHEN tags_json LIKE CONCAT('%', #{term}, '%') THEN 80 ELSE 0 END)
+                        + (CASE WHEN summary LIKE CONCAT('%', #{term}, '%') THEN 40 ELSE 0 END)
+                        + (CASE WHEN content LIKE CONCAT('%', #{term}, '%') THEN 20 ELSE 0 END)
+                        + (CASE WHEN author LIKE CONCAT('%', #{term}, '%') THEN 10 ELSE 0 END)
+                        )
+                    </foreach>
+                    )
+                </when>
+                <otherwise>0</otherwise>
+            </choose>
+            AS relevance_score
+        FROM posts
+        <where>
+            status = 'published'
+            <if test="feed == 'followed'">
+                AND author IN (
+                SELECT u.username
+                FROM user_follow uf
+                         INNER JOIN users u ON uf.target_user_id = u.id
+                WHERE uf.user_id = #{requesterUserId}
+                )
+            </if>
+            <if test="keywordTerms != null and keywordTerms.size() > 0">
+                AND (
+                    <foreach collection="keywordTerms" item="term" separator=" OR ">
+                        (
+                        title LIKE CONCAT('%', #{term}, '%')
+                        OR content LIKE CONCAT('%', #{term}, '%')
+                        OR author LIKE CONCAT('%', #{term}, '%')
+                        OR tags_json LIKE CONCAT('%', #{term}, '%')
+                        )
+                    </foreach>
+                )
+            </if>
+            <if test="author != null and author != ''">
+                AND author LIKE CONCAT('%', #{author}, '%')
+            </if>
+            <if test="tag != null and tag != ''">
+                AND tags_json LIKE CONCAT('%', #{tag}, '%')
+            </if>
+            <if test="boardId != null">
+                AND board_id = #{boardId}
+            </if>
+            <if test="format != null and format != ''">
+                AND format = #{format}
+            </if>
+            <if test="dateFrom != null and dateFrom != ''">
+                AND created_at &gt;= #{dateFrom}
+            </if>
+            <if test="dateTo != null and dateTo != ''">
+                AND created_at &lt;= #{dateTo}
+            </if>
+        </where>
+        <choose>
+            <when test="keywordTerms != null and keywordTerms.size() > 0">
+                ORDER BY relevance_score DESC, created_at DESC, id DESC
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="feed == 'hot'">
+                        ORDER BY hot_score DESC, created_at DESC, id DESC
+                    </when>
+                    <when test="feed == 'recommend'">
+                        ORDER BY is_top DESC, is_featured DESC, follow_score DESC, tag_match_score DESC, hot_score DESC, created_at DESC, id DESC
+                    </when>
+                    <when test="feed == 'latest'">
+                        ORDER BY created_at DESC, id DESC
+                    </when>
+                    <when test="feed == 'all'">
+                        ORDER BY hot_score DESC, is_top DESC, is_featured DESC, created_at DESC, id DESC
+                    </when>
+                    <when test="feed == 'followed'">
+                        ORDER BY created_at DESC, id DESC
+                    </when>
+                    <otherwise>
+                        ORDER BY is_top DESC, is_featured DESC, id DESC
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="countPublished" resultType="long">
+        SELECT COUNT(1)
+        FROM posts
+        <where>
+            status = 'published'
+            <if test="feed == 'followed'">
+                AND author IN (
+                SELECT u.username
+                FROM user_follow uf
+                         INNER JOIN users u ON uf.target_user_id = u.id
+                WHERE uf.user_id = #{requesterUserId}
+                )
+            </if>
+            <if test="keywordTerms != null and keywordTerms.size() > 0">
+                AND (
+                    <foreach collection="keywordTerms" item="term" separator=" OR ">
+                        (
+                        title LIKE CONCAT('%', #{term}, '%')
+                        OR content LIKE CONCAT('%', #{term}, '%')
+                        OR author LIKE CONCAT('%', #{term}, '%')
+                        OR tags_json LIKE CONCAT('%', #{term}, '%')
+                        )
+                    </foreach>
+                )
+            </if>
+            <if test="author != null and author != ''">
+                AND author LIKE CONCAT('%', #{author}, '%')
+            </if>
+            <if test="tag != null and tag != ''">
+                AND tags_json LIKE CONCAT('%', #{tag}, '%')
+            </if>
+            <if test="boardId != null">
+                AND board_id = #{boardId}
+            </if>
+            <if test="format != null and format != ''">
+                AND format = #{format}
+            </if>
+            <if test="dateFrom != null and dateFrom != ''">
+                AND created_at &gt;= #{dateFrom}
+            </if>
+            <if test="dateTo != null and dateTo != ''">
+                AND created_at &lt;= #{dateTo}
+            </if>
+        </where>
+    </select>
+
+    <select id="listPendingReview" resultMap="PostEntityMap">
+        SELECT
+            id, title, summary, content, format, attachments_json, tags_json, gallery_captions_json, link_url, link_title, link_summary, board_id, board_name, category,
+            author, visibility, status, risk_level, is_top, is_featured, created_at, updated_at
+        FROM posts
+        <where>
+            status = 'pending'
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') OR author LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="boardId != null">
+                AND board_id = #{boardId}
+            </if>
+            <if test="format != null and format != ''">
+                AND format = #{format}
+            </if>
+        </where>
+        ORDER BY id DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="countPendingReview" resultType="long">
+        SELECT COUNT(1)
+        FROM posts
+        <where>
+            status = 'pending'
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') OR author LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="boardId != null">
+                AND board_id = #{boardId}
+            </if>
+            <if test="format != null and format != ''">
+                AND format = #{format}
+            </if>
+        </where>
+    </select>
+
+    <select id="findById" resultMap="PostEntityMap">
+        SELECT
+            id, title, summary, content, format, attachments_json, tags_json, gallery_captions_json, link_url, link_title, link_summary, board_id, board_name, category,
+            author, visibility, status, risk_level, is_top, is_featured, created_at, updated_at
+        FROM posts
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateBoardNameByBoardId">
+        UPDATE posts
+        SET board_name = #{boardName}
+        WHERE board_id = #{boardId}
+    </update>
+
+    <update id="updateReview">
+        UPDATE posts
+        SET status = #{status}, risk_level = #{riskLevel},
+            updated_at = DATE_FORMAT(UTC_TIMESTAMP(), '%Y-%m-%d %H:%i:%s')
+        WHERE id = #{postId}
+    </update>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(1) FROM posts
+    </select>
+
+    <select id="countByStatus" resultType="long">
+        SELECT COUNT(1) FROM posts WHERE status = #{status}
+    </select>
+
+    <select id="countByStatusAndUpdatedDatePrefix" resultType="long">
+        SELECT COUNT(1)
+        FROM posts
+        WHERE status = #{status}
+          AND updated_at LIKE CONCAT(#{datePrefix}, '%')
+    </select>
+
+    <select id="countCreatedTrendByDate" resultType="map">
+        SELECT
+            LEFT(created_at, 10) AS date,
+            COUNT(1) AS count
+        FROM posts
+        WHERE created_at IS NOT NULL
+          AND LEFT(created_at, 10) &gt;= #{dateFrom}
+          AND LEFT(created_at, 10) &lt;= #{dateTo}
+        GROUP BY LEFT(created_at, 10)
+        ORDER BY LEFT(created_at, 10) ASC
+    </select>
+
+    <select id="countBoardDistributionTop" resultType="map">
+        SELECT
+            COALESCE(NULLIF(board_name, ''), '未分配板块') AS label,
+            COUNT(1) AS value
+        FROM posts
+        GROUP BY COALESCE(NULLIF(board_name, ''), '未分配板块')
+        ORDER BY value DESC, label ASC
+        LIMIT #{limit}
+    </select>
+</mapper>

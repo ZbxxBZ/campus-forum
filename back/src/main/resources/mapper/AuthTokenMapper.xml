@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.AuthTokenMapper">
+
+    <insert id="insert">
+        INSERT INTO auth_tokens (token, user_id, last_seen)
+        VALUES (#{token}, #{userId}, #{lastSeen})
+    </insert>
+
+    <select id="findUserIdByToken" resultType="long">
+        SELECT user_id
+        FROM auth_tokens
+        WHERE token = #{token}
+    </select>
+
+    <update id="touch">
+        UPDATE auth_tokens
+        SET last_seen = #{lastSeen}
+        WHERE token = #{token}
+    </update>
+
+    <select id="countOnlineUsersSince" resultType="long">
+        SELECT COUNT(DISTINCT t.user_id)
+        FROM auth_tokens t
+                 INNER JOIN users u ON t.user_id = u.id
+        WHERE u.status = 'active'
+          AND t.last_seen &gt;= #{since}
+    </select>
+
+    <select id="countActiveTrendByDate" resultType="map">
+        SELECT
+            LEFT(t.last_seen, 10) AS date,
+            COUNT(DISTINCT t.user_id) AS count
+        FROM auth_tokens t
+                 INNER JOIN users u ON t.user_id = u.id
+        WHERE u.status = 'active'
+          AND t.last_seen IS NOT NULL
+          AND LEFT(t.last_seen, 10) &gt;= #{dateFrom}
+          AND LEFT(t.last_seen, 10) &lt;= #{dateTo}
+        GROUP BY LEFT(t.last_seen, 10)
+        ORDER BY LEFT(t.last_seen, 10) ASC
+    </select>
+</mapper>

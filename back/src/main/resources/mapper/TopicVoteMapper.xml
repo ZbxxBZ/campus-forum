@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.TopicVoteMapper">
+
+    <resultMap id="TopicVoteEntityMap" type="org.example.project.model.TopicVoteEntity">
+        <id property="id" column="id"/>
+        <result property="topicId" column="topic_id"/>
+        <result property="optionId" column="option_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findByTopicAndUser" resultMap="TopicVoteEntityMap">
+        SELECT id, topic_id, option_id, user_id, created_at
+        FROM topic_vote
+        WHERE topic_id = #{topicId} AND user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="org.example.project.model.TopicVoteEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO topic_vote (topic_id, option_id, user_id, created_at)
+        VALUES (#{topicId}, #{optionId}, #{userId}, #{createdAt})
+    </insert>
+
+    <update id="updateOption">
+        UPDATE topic_vote
+        SET option_id = #{optionId}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
+

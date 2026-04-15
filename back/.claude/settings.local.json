@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(grep -r \"multipart\\\\|upload\" ./src/main/resources/*.properties ./src/main/resources/*.yml)",
+      "Bash(curl -X POST http://localhost:8080/api/v1/uploads/images -H \"Authorization: Bearer test\")",
+      "Bash(npm run:*)",
+      "Bash(find . -name \"*.vue\" -type f -exec grep -l \"message\\\\|alert\\\\|confirm\\\\|placeholder\\\\|title\" {} \\\\;)",
+      "Bash(find views/ -name \"*.vue\" -exec grep -l \"Error\\\\|Success\\\\|Failed\" {} \\\\;)",
+      "Bash(grep -v \"import\\\\|export\\\\|function\\\\|const\\\\|let\\\\|var\\\\|class\\\\|//\")",
+      "Bash(grep -v \"errorMessage\\\\|successMessage\\\\|import\\\\|export\\\\|//\")",
+      "Bash(grep -v \"import\\\\|export\\\\|from\\\\|node_modules\\\\|//\")",
+      "Bash(grep -v \"errorMessage\\\\|successMessage\\\\|warningMessage\\\\|import\\\\|export\\\\|const\\\\|let\\\\|var\\\\|function\\\\|//\")",
+      "Bash(find . -type f \\\\\\( -name \"*.js\" -o -name \"*.vue\" -o -name \"*.ts\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/dist/*\" -exec grep -l \"Username\\\\|Email\\\\|Password\" {} \\\\;)"
+    ]
+  }
+}

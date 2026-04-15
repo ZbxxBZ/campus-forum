@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.BoardMapper">
+
+    <resultMap id="BoardEntityMap" type="org.example.project.model.BoardEntity">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="code" column="code"/>
+        <result property="description" column="description"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+        <result property="postCount" column="post_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="org.example.project.model.BoardEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO boards (name, code, description, sort_order, status, post_count, created_at, updated_at)
+        VALUES (#{name}, #{code}, #{description}, #{sortOrder}, #{status}, #{postCount}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="updateSelective" parameterType="org.example.project.model.BoardEntity">
+        UPDATE boards
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="code != null">code = #{code},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="findById" resultMap="BoardEntityMap">
+        SELECT id, name, code, description, sort_order, status, post_count, created_at, updated_at
+        FROM boards
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByCode" resultMap="BoardEntityMap">
+        SELECT id, name, code, description, sort_order, status, post_count, created_at, updated_at
+        FROM boards
+        WHERE code = #{code}
+        LIMIT 1
+    </select>
+
+    <select id="list" resultMap="BoardEntityMap">
+        SELECT id, name, code, description, sort_order, status, post_count, created_at, updated_at
+        FROM boards
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (name LIKE CONCAT('%', #{keyword}, '%') OR code LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="listAvailable" resultMap="BoardEntityMap">
+        SELECT id, name, code, description, sort_order, status, post_count, created_at, updated_at
+        FROM boards
+        WHERE status = 'enabled'
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1)
+        FROM boards
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (name LIKE CONCAT('%', #{keyword}, '%') OR code LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+</mapper>

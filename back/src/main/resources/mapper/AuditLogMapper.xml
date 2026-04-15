@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.project.mapper.AuditLogMapper">
+
+    <resultMap id="AuditLogEntityMap" type="org.example.project.model.AuditLogEntity">
+        <id property="id" column="id"/>
+        <result property="action" column="action"/>
+        <result property="actionLabel" column="action_label"/>
+        <result property="postId" column="post_id"/>
+        <result property="postTitle" column="post_title"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="operator" column="operator"/>
+        <result property="operatorRole" column="operator_role"/>
+        <result property="detail" column="detail"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="org.example.project.model.AuditLogEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO audit_log (
+            action, action_label, post_id, post_title, operator_id, operator, operator_role, detail, created_at
+        ) VALUES (
+            #{action}, #{actionLabel}, #{postId}, #{postTitle}, #{operatorId}, #{operator}, #{operatorRole}, #{detail}, #{createdAt}
+        )
+    </insert>
+
+    <select id="list" resultMap="AuditLogEntityMap">
+        SELECT
+            id, action, action_label, post_id, post_title, operator_id, operator, operator_role, detail, created_at
+        FROM audit_log
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (post_title LIKE CONCAT('%', #{keyword}, '%') OR detail LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="action != null and action != ''">
+                AND action = #{action}
+            </if>
+            <if test="role != null and role != ''">
+                AND operator_role = #{role}
+            </if>
+            <if test="operator != null and operator != ''">
+                AND operator LIKE CONCAT('%', #{operator}, '%')
+            </if>
+        </where>
+        ORDER BY id DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1)
+        FROM audit_log
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (post_title LIKE CONCAT('%', #{keyword}, '%') OR detail LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="action != null and action != ''">
+                AND action = #{action}
+            </if>
+            <if test="role != null and role != ''">
+                AND operator_role = #{role}
+            </if>
+            <if test="operator != null and operator != ''">
+                AND operator LIKE CONCAT('%', #{operator}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
